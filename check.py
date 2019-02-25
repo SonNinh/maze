@@ -1,5 +1,6 @@
 import time
 import sys
+from string import ascii_uppercase
 
 def create(src):
     i = 0
@@ -24,52 +25,48 @@ def find_player(maze, ID):
 
     return 0, 0
 
-def find_map(maze, player):
+def find_map(maze, player, ID):
     data = list()
     step = list()
     step.append(player)
-    # print("step:", step)
     data.append(step)
-    # print("data:", data)
-    while len(step) > 0:
+    directions = ((1, 0), (-1, 0), (0, 1), (0, -1))
+    count = 0
+
+    while True:
         step = []
-        for i in data[len(data)-1]:
+        for node in data[len(data)-1]:
+            for dir in directions:
+                x = node[0] + dir[0]
+                y = node[1] + dir[1]
+                if maze[x][y] is ".":
+                    count += 1
+                elif maze[x][y] is " ":
+                    step.append((x, y))
+                    maze[x][y] = "."
+                elif maze[x][y] is "o":
+                    return (x, y), data, count
+                elif maze[x][y] is "!":
+                    if len(data) <= 20:
+                        return (x, y), data, count
+                elif maze[x][y] in ascii_uppercase and maze[x][y] is not ID:
+                    if len(data) % 2 == 0:
+                        sys.stderr.write(str(maze[x][y])+"\n")
+                        return (x, y), data, count
+                    else:
+                        enemy = node
 
-            x = i[0] + 1
-            y = i[1]
-            if maze[x][y] is " ":
-                step.append((x, y))
-                maze[x][y] = "."
-            elif (maze[x][y] is "o") or (maze[x][y] is "!"):
-                return (x, y), data
+            if count >= 2:
+                print(1)
+            count = 0
+            
+        if len(step) > 0:
+            data.append(step)
+        else:
+            break
 
-            x = i[0] - 1
-            y = i[1]
-            if maze[x][y] is " ":
-                step.append((x, y))
-                maze[x][y] = "."
-            elif (maze[x][y] is "o") or (maze[x][y] is "!"):
-                return (x, y), data
-
-            x = i[0]
-            y = i[1] + 1
-            if maze[x][y] is " ":
-                step.append((x, y))
-                maze[x][y] = "."
-            elif (maze[x][y] is "o") or (maze[x][y] is "!"):
-                return (x, y), data
-
-            x = i[0]
-            y = i[1] - 1
-            if maze[x][y] is " ":
-                step.append((x, y))
-                maze[x][y] = "."
-            elif (maze[x][y] is "o") or (maze[x][y] is "!"):
-                return (x, y), data
-
-        data.append(step)
-
-    return [0, 0], data
+    # return (data[len(data)-1][0][0], data[len(data)-1][0][1]), data
+    return enemy, data, count
 
 def find_path(target, map):
     path = list()
@@ -121,8 +118,8 @@ def path_finding():
     player = find_player(maze, ID)
 
 
-    target, map = find_map(maze, player)
-
+    target, map, count = find_map(maze, player, ID)
+    print(count)
 
     path = find_path(target, map)
 
